@@ -1,5 +1,12 @@
 import gradio as gr
 import pandas as pd
+import sys
+sys.path.append('..')
+from agent.agent import process_image
+import numpy as np
+from PIL import Image
+import tempfile
+import os
 
 sample_data = [
     {"name": "Ravi",    "amount": 5000, "paid": True,  "dividend": 500, "due": 0,    "months_paid": 3, "missed": 0},
@@ -31,6 +38,31 @@ def calculate_summary():
 
 def show_ledger(image, search=""):
     rows = []
+    if image is not None:
+        try:
+            # Convert numpy array to temp file
+            img = Image.fromarray(image.astype('uint8'))
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+            img.save(tmp.name)
+            result = process_image(tmp.name)
+            os.unlink(tmp.name)
+            members_from_ai = result.get("members", [])
+            if members_from_ai:
+                for m in members_from_ai:
+                    rows.append({
+                        "Member": m.get("name", "Unknown"),
+                        "Monthly (₹)": f"₹{m.get('amount_paid', 0):,}",
+                        "Status": "✅ Paid" if m.get('amount_paid', 0) > 0 else "❌ Unpaid",
+                        "Dividend (₹)": f"₹{result.get('dividend_per_member', 0):,.0f}",
+                        "Due (₹)": "₹0",
+                        "Months Paid": str(m.get('month', '-')),
+                        "Missed": 0
+                    })
+                return pd.DataFrame(rows)
+        except Exception as e:
+            print(f"AI processing failed: {e}, falling back to sample data")
+
+    # Fallback to sample data if no image or AI fails
     for m in sample_data:
         if search and search.lower() not in m["name"].lower():
             continue

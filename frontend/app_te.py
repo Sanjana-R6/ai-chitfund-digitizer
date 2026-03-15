@@ -1,6 +1,8 @@
 import gradio as gr
 import pandas as pd
-
+import sys
+sys.path.append('..')
+from agent.agent import process_image
 sample_data = [
     {"name": "రవి",    "amount": 5000, "paid": True,  "dividend": 500, "due": 0,    "months_paid": 3, "missed": 0},
     {"name": "లక్ష్మి","amount": 5000, "paid": True,  "dividend": 500, "due": 0,    "months_paid": 3, "missed": 0},
@@ -31,6 +33,25 @@ def calculate_summary():
 
 def show_ledger(image, search=""):
     rows = []
+    if image is not None:
+        try:
+            result = process_image(image)
+            members_from_ai = result.get("members", [])
+            if members_from_ai:
+                for m in members_from_ai:
+                    rows.append({
+                        "సభ్యుడు": m.get("name", "తెలియదు"),
+                        "నెలవారీ (₹)": f"₹{m.get('amount_paid', 0):,}",
+                        "స్థితి": "✅ చెల్లించారు" if m.get('amount_paid', 0) > 0 else "❌ చెల్లించలేదు",
+                        "డివిడెండ్ (₹)": f"₹{result.get('dividend_per_member', 0):,.0f}",
+                        "బకాయి (₹)": "₹0",
+                        "చెల్లించిన నెలలు": str(m.get('month', '-')),
+                        "మిస్": 0
+                    })
+                return pd.DataFrame(rows)
+        except Exception as e:
+            print(f"AI processing failed: {e}, falling back to sample data")
+
     for m in sample_data:
         if search and search.lower() not in m["name"].lower():
             continue
