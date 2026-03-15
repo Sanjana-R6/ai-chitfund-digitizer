@@ -1,5 +1,4 @@
 import gradio as gr
-import pandas as pd
 import json
 import os
 import sys
@@ -14,48 +13,92 @@ try:
 except:
     AI_AVAILABLE = False
 
-DATA_FILE = "../data/chit_data.json"
-SUGGESTED_FIELDS = ["Phone", "Address", "Guarantor", "Loan Taken", "Notes", "Occupation", "Aadhar Number", "Bank Account", "Email", "Emergency Contact"]
+DATA_DIR = "../data"
+INDEX_FILE = os.path.join(DATA_DIR, "chits_index.json")
+SUGGESTED_FIELDS = ["Phone", "Address", "Guarantor", "Loan Taken", "Notes",
+                    "Occupation", "Aadhar Number", "Bank Account", "Email", "Emergency Contact"]
 
-os.makedirs("../data", exist_ok=True)
+os.makedirs(DATA_DIR, exist_ok=True)
 
-def load_data():
-    if os.path.exists(DATA_FILE):
+DEFAULT_CHIT = {
+    "chit_name": "Sample Chit Fund",
+    "chit_value": 100000,
+    "members": 10,
+    "monthly_sub": 5000,
+    "commission_pct": 5,
+    "winning_bid": 15000,
+    "current_month": 3,
+    "start_date": "2024-01-01",
+    "custom_fields": ["Phone", "Address", "Guarantor", "Loan Taken", "Notes"],
+    "members_list": [
+        {"name": "Ravi",    "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Lakshmi","paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Suresh", "paid": False, "due": 5000, "months_paid": 2, "missed": 2, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "Yes", "Notes": ""},
+        {"name": "Priya",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Ramesh", "paid": False, "due": 5000, "months_paid": 1, "missed": 3, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "Yes", "Notes": ""},
+        {"name": "Sita",   "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Kiran",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Deepa",  "paid": False, "due": 5000, "months_paid": 2, "missed": 2, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Arjun",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+        {"name": "Meena",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
+    ]
+}
+
+# ── Index helpers ──────────────────────────────────────────────
+def load_index():
+    if os.path.exists(INDEX_FILE):
         try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
+            with open(INDEX_FILE, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if content:
                     return json.loads(content)
         except:
             pass
-    return {
-        "chit_name": "Sample Chit Fund",
-        "chit_value": 100000,
-        "members": 10,
-        "monthly_sub": 5000,
-        "commission_pct": 5,
-        "winning_bid": 15000,
-        "current_month": 3,
-        "start_date": "2024-01-01",
-        "custom_fields": ["Phone", "Address", "Guarantor", "Loan Taken", "Notes"],
-        "members_list": [
-            {"name": "Ravi",    "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Lakshmi","paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Suresh", "paid": False, "due": 5000, "months_paid": 2, "missed": 2, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "Yes", "Notes": ""},
-            {"name": "Priya",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Ramesh", "paid": False, "due": 5000, "months_paid": 1, "missed": 3, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "Yes", "Notes": ""},
-            {"name": "Sita",   "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Kiran",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Deepa",  "paid": False, "due": 5000, "months_paid": 2, "missed": 2, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Arjun",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-            {"name": "Meena",  "paid": True,  "due": 0,    "months_paid": 3, "missed": 0, "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No",  "Notes": ""},
-        ]
-    }
+    # Bootstrap with default chit
+    index = {"chits": ["Sample Chit Fund"], "active": "Sample Chit Fund"}
+    save_index(index)
+    save_chit("Sample Chit Fund", DEFAULT_CHIT)
+    return index
 
-def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
+def save_index(index):
+    with open(INDEX_FILE, "w", encoding="utf-8") as f:
+        json.dump(index, f, ensure_ascii=False, indent=2)
+
+def chit_filename(name):
+    safe = name.replace(" ", "_").replace("/", "-")
+    return os.path.join(DATA_DIR, f"chit_{safe}.json")
+
+# ── Chit helpers ───────────────────────────────────────────────
+def load_chit(name):
+    path = chit_filename(name)
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    return json.loads(content)
+        except:
+            pass
+    return DEFAULT_CHIT.copy()
+
+def save_chit(name, data):
+    with open(chit_filename(name), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+def get_all_chits():
+    index = load_index()
+    return index.get("chits", ["Sample Chit Fund"])
+
+def get_active_chit():
+    index = load_index()
+    return index.get("active", "Sample Chit Fund")
+
+def set_active_chit(name):
+    index = load_index()
+    index["active"] = name
+    save_index(index)
+
+# ── Calculations ───────────────────────────────────────────────
 def calculate_summary(data):
     chit_value = data["chit_value"]
     winning_bid = data.get("winning_bid", 0)
@@ -68,8 +111,11 @@ def calculate_summary(data):
     paid_count = sum(1 for m in data["members_list"] if m["paid"])
     return commission, dividend, prized_amount, total_collected, pending, paid_count
 
-def get_home_cards():
-    data = load_data()
+# ── UI Builders ────────────────────────────────────────────────
+def get_home_cards(chit_name=None):
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     commission, dividend, prized_amount, total_collected, pending, paid_count = calculate_summary(data)
     return f"""
 <div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px'>
@@ -89,11 +135,24 @@ def get_home_cards():
         <div style='font-size:32px;font-weight:bold;color:#264653'>₹{dividend:,.0f}</div>
         <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Dividend / Member</div>
     </div>
+</div>
+<div style='background:#f0faf8;border:1px solid #2a9d8f;border-radius:8px;padding:10px 16px;font-size:13px;color:#264653'>
+    <b>{data['chit_name']}</b> &nbsp;|&nbsp; Month {data['current_month']} &nbsp;|&nbsp;
+    {paid_count}/{data['members']} members paid &nbsp;|&nbsp; Chit Value: ₹{data['chit_value']:,} &nbsp;|&nbsp;
+    Winning Bid: ₹{data.get('winning_bid',0):,}
 </div>"""
 
-def make_excel_table(members_list, custom_fields, monthly_sub, current_month):
-    data = load_data()
+def make_excel_table(chit_name=None, search=""):
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     commission, dividend, _, _, _, _ = calculate_summary(data)
+    members_list = data["members_list"]
+    custom_fields = data.get("custom_fields", [])
+    monthly_sub = data["monthly_sub"]
+    current_month = data["current_month"]
+    if search:
+        members_list = [m for m in members_list if search.lower() in m["name"].lower()]
     header_cols = ["#", "Member Name", "Monthly (₹)", "Status", "Dividend (₹)", "Due (₹)", "Months Paid"] + custom_fields
     headers = "".join([
         f"<th style='background:#2a9d8f;color:#ffffff;padding:12px 16px;text-align:left;font-weight:600;font-size:13px;white-space:nowrap;border-right:1px solid #1e7d72'>{h}</th>"
@@ -120,14 +179,13 @@ def make_excel_table(members_list, custom_fields, monthly_sub, current_month):
             onclick="
                 var dd = document.querySelector('#member_select input');
                 if(dd) {{
-                    var nativeInput = dd;
-                    var lastValue = nativeInput.value;
-                    nativeInput.value = '{m['name']}';
+                    var lastValue = dd.value;
+                    dd.value = '{m['name']}';
                     var event = new Event('input', {{ bubbles: true }});
                     event.simulated = true;
-                    var tracker = nativeInput._valueTracker;
+                    var tracker = dd._valueTracker;
                     if (tracker) {{ tracker.setValue(lastValue); }}
-                    nativeInput.dispatchEvent(event);
+                    dd.dispatchEvent(event);
                 }}
             ">
             <td style='padding:12px 16px;font-size:13px;color:#2a9d8f;font-weight:700;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{i+1}</td>
@@ -148,45 +206,34 @@ def make_excel_table(members_list, custom_fields, monthly_sub, current_month):
 </div>
 <p style='font-size:12px;color:#64748b;margin-top:6px'>💡 Click any row to view and edit member details below</p>"""
 
-def get_ledger_html(search=""):
-    data = load_data()
-    members = data["members_list"]
-    if search:
-        members = [m for m in members if search.lower() in m["name"].lower()]
-    return make_excel_table(members, data.get("custom_fields", []), data["monthly_sub"], data["current_month"])
+# ── Switch chit fund ───────────────────────────────────────────
+def switch_chit(chit_name):
+    if not chit_name:
+        return [gr.update()]*6
+    set_active_chit(chit_name)
+    data = load_chit(chit_name)
+    member_names = [m["name"] for m in data["members_list"]]
+    first = member_names[0] if member_names else None
+    return (
+        get_home_cards(chit_name),
+        make_excel_table(chit_name),
+        make_excel_table(chit_name),
+        gr.update(choices=member_names, value=first),
+        calculate_auction_for(chit_name, data.get("winning_bid", 15000)),
+        f"Switched to **{chit_name}**"
+    )
 
-def show_ledger_ai(image, search=""):
-    data = load_data()
-    if image is not None and AI_AVAILABLE:
-        try:
-            img = Image.fromarray(image.astype('uint8'))
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
-            img.save(tmp.name)
-            result = process_image(tmp.name)
-            os.unlink(tmp.name)
-            members_from_ai = result.get("members", [])
-            if members_from_ai:
-                for m in data["members_list"]:
-                    for ai_m in members_from_ai:
-                        if ai_m.get("name", "").lower() in m["name"].lower():
-                            m["paid"] = ai_m.get("amount_paid", 0) > 0
-                            m["due"] = 0 if m["paid"] else data["monthly_sub"]
-                save_data(data)
-        except Exception as e:
-            print(f"AI processing failed: {e}")
-    return get_ledger_html(search)
-
-def calculate_auction(winning_bid):
+def calculate_auction_for(chit_name, winning_bid):
     if not winning_bid:
         return ""
-    data = load_data()
+    data = load_chit(chit_name)
     winning_bid = float(winning_bid)
     commission = round(data["chit_value"] * data["commission_pct"] / 100, 2)
     dividend = round((winning_bid - commission) / data["members"], 2)
     prized_amount = data["chit_value"] - winning_bid
     net_installment = data["monthly_sub"] - dividend
     data["winning_bid"] = int(winning_bid)
-    save_data(data)
+    save_chit(chit_name, data)
     return f"""
 ### 🔨 Auction Result
 
@@ -202,10 +249,18 @@ def calculate_auction(winning_bid):
 > 💡 Each member pays ₹{net_installment:,.0f} this month instead of ₹{data['monthly_sub']:,}
 """
 
-def show_member(name):
+def calculate_auction(winning_bid, chit_name=None):
+    if not chit_name:
+        chit_name = get_active_chit()
+    return calculate_auction_for(chit_name, winning_bid)
+
+# ── Member functions ───────────────────────────────────────────
+def show_member(name, chit_name=None):
     if not name:
-        return "", gr.update(visible=False), None, "Paid", {f: "" for f in load_data().get("custom_fields", [])}
-    data = load_data()
+        return "", gr.update(visible=False), None, "Paid", "{}"
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     commission, dividend, _, _, _, _ = calculate_summary(data)
     for m in data["members_list"]:
         if m["name"] == name:
@@ -238,19 +293,21 @@ _ChitSync_ ✨"""
 ---
 {whatsapp}
 """
-            custom_vals = {f: m.get(f, "") for f in data.get("custom_fields", [])}
+            custom_vals = json.dumps({f: m.get(f, "") for f in data.get("custom_fields", [])})
             return info, gr.update(visible=True), data['monthly_sub'], "Paid" if m['paid'] else "Unpaid", custom_vals
-    return "Member not found", gr.update(visible=False), None, "Paid", {}
+    return "Member not found", gr.update(visible=False), None, "Paid", "{}"
 
 def send_alert(name):
     if not name:
         return "⚠️ Please select a member first"
     return f"✅ WhatsApp alert sent to {name} successfully!"
 
-def edit_member(name, new_amount, new_status, custom_vals_json):
+def edit_member(name, new_amount, new_status, custom_vals_json, chit_name=None):
     if not name:
-        return "⚠️ Please select a member first", get_ledger_html()
-    data = load_data()
+        return "⚠️ Please select a member first", make_excel_table()
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     for m in data["members_list"]:
         if m["name"] == name:
             if new_amount:
@@ -271,16 +328,39 @@ def edit_member(name, new_amount, new_status, custom_vals_json):
                         m[field] = val
             except:
                 pass
-            save_data(data)
-            return f"✅ Record updated for {name}!", get_ledger_html()
-    return "Member not found", get_ledger_html()
+            save_chit(chit_name, data)
+            return f"✅ Record updated for {name}!", make_excel_table(chit_name)
+    return "Member not found", make_excel_table(chit_name)
+
+def show_ledger_ai(image, search="", chit_name=None):
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
+    if image is not None and AI_AVAILABLE:
+        try:
+            img = Image.fromarray(image.astype('uint8'))
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+            img.save(tmp.name)
+            result = process_image(tmp.name)
+            os.unlink(tmp.name)
+            members_from_ai = result.get("members", [])
+            if members_from_ai:
+                for m in data["members_list"]:
+                    for ai_m in members_from_ai:
+                        if ai_m.get("name", "").lower() in m["name"].lower():
+                            m["paid"] = ai_m.get("amount_paid", 0) > 0
+                            m["due"] = 0 if m["paid"] else data["monthly_sub"]
+                save_chit(chit_name, data)
+        except Exception as e:
+            print(f"AI processing failed: {e}")
+    return make_excel_table(chit_name, search)
 
 def create_new_chit(chit_name, chit_value, num_members, monthly_sub, commission_pct, start_date, member_names_text):
     if not all([chit_name, chit_value, num_members, monthly_sub, member_names_text]):
-        return "⚠️ Please fill all required fields!", ""
+        return "⚠️ Please fill all required fields!", "", gr.update()
     names = [n.strip() for n in member_names_text.strip().split("\n") if n.strip()]
     if len(names) != int(num_members):
-        return f"⚠️ You entered {len(names)} names but specified {int(num_members)} members!", ""
+        return f"⚠️ You entered {len(names)} names but specified {int(num_members)} members!", "", gr.update()
     members_list = [{"name": n, "paid": False, "due": int(monthly_sub), "months_paid": 0, "missed": 0,
                      "Phone": "", "Address": "", "Guarantor": "", "Loan Taken": "No", "Notes": ""} for n in names]
     new_data = {
@@ -295,47 +375,51 @@ def create_new_chit(chit_name, chit_value, num_members, monthly_sub, commission_
         "custom_fields": ["Phone", "Address", "Guarantor", "Loan Taken", "Notes"],
         "members_list": members_list
     }
-    save_data(new_data)
-    table = make_excel_table(members_list, new_data["custom_fields"], int(monthly_sub), 1)
-    return f"✅ '{chit_name}' created with {int(num_members)} members!", table
+    save_chit(chit_name, new_data)
+    index = load_index()
+    if chit_name not in index["chits"]:
+        index["chits"].append(chit_name)
+    index["active"] = chit_name
+    save_index(index)
+    table = make_excel_table(chit_name)
+    all_chits = get_all_chits()
+    return f"✅ '{chit_name}' created with {int(num_members)} members! Switching to it now.", table, gr.update(choices=all_chits, value=chit_name)
 
-def add_custom_field(field_name, suggested):
+def add_custom_field(field_name, suggested, chit_name=None):
     field = field_name.strip() if field_name and field_name.strip() else suggested
     if not field:
-        return "⚠️ Enter a field name first!", gr.update(), gr.update(), get_ledger_html()
-    data = load_data()
+        return "⚠️ Enter a field name first!", gr.update(), gr.update(), make_excel_table()
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     if field in data["custom_fields"]:
-        return f"⚠️ '{field}' already exists!", gr.update(), gr.update(), get_ledger_html()
+        return f"⚠️ '{field}' already exists!", gr.update(), gr.update(), make_excel_table(chit_name)
     data["custom_fields"].append(field)
     for m in data["members_list"]:
         m[field] = ""
-    save_data(data)
+    save_chit(chit_name, data)
     fields = data["custom_fields"]
-    return f"✅ Field '{field}' added!", gr.update(choices=fields), gr.update(choices=fields), get_ledger_html()
+    return f"✅ Field '{field}' added!", gr.update(choices=fields), gr.update(choices=fields), make_excel_table(chit_name)
 
-def remove_custom_field(field_name):
+def remove_custom_field(field_name, chit_name=None):
     if not field_name:
-        return "⚠️ Select a field to remove!", gr.update(), gr.update(), get_ledger_html()
-    data = load_data()
+        return "⚠️ Select a field to remove!", gr.update(), gr.update(), make_excel_table()
+    if not chit_name:
+        chit_name = get_active_chit()
+    data = load_chit(chit_name)
     if field_name not in data["custom_fields"]:
-        return "Field not found!", gr.update(), gr.update(), get_ledger_html()
+        return "Field not found!", gr.update(), gr.update(), make_excel_table(chit_name)
     data["custom_fields"].remove(field_name)
     for m in data["members_list"]:
         m.pop(field_name, None)
-    save_data(data)
+    save_chit(chit_name, data)
     fields = data["custom_fields"]
-    return f"✅ Field '{field_name}' removed!", gr.update(choices=fields), gr.update(choices=fields), get_ledger_html()
+    return f"✅ Field '{field_name}' removed!", gr.update(choices=fields), gr.update(choices=fields), make_excel_table(chit_name)
 
-def get_custom_fields_list():
-    return load_data().get("custom_fields", [])
-
-def build_edit_form(name):
-    data = load_data()
-    for m in data["members_list"]:
-        if m["name"] == name:
-            fields = data.get("custom_fields", [])
-            return json.dumps({f: m.get(f, "") for f in fields})
-    return "{}"
+def get_custom_fields_list(chit_name=None):
+    if not chit_name:
+        chit_name = get_active_chit()
+    return load_chit(chit_name).get("custom_fields", [])
 
 CSS = """
 footer { display: none !important; }
@@ -348,42 +432,63 @@ footer { display: none !important; }
     font-size: 14px !important;
     padding: 10px 16px !important;
 }
+#chit-selector {
+    background: #e8f5f3 !important;
+    border: 1.5px solid #2a9d8f !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    color: #264653 !important;
+}
 """
+
+# ── Bootstrap ──────────────────────────────────────────────────
+_index = load_index()
+_active = _index.get("active", "Sample Chit Fund")
+_all_chits = _index.get("chits", ["Sample Chit Fund"])
+_data = load_chit(_active)
+_member_names = [m["name"] for m in _data["members_list"]]
 
 with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as en_app:
 
+    # ── Global chit selector ───────────────────────────────────
     with gr.Row(equal_height=True):
-        with gr.Column(scale=8):
+        with gr.Column(scale=6):
             gr.Markdown("# 🏦 ChitSync")
             gr.Markdown("### Transparent. Digital. Instant. — Built for India")
+        with gr.Column(scale=3):
+            chit_selector = gr.Dropdown(
+                choices=_all_chits,
+                value=_active,
+                label="Currently viewing",
+                elem_id="chit-selector"
+            )
         with gr.Column(scale=1, min_width=60):
             gr.Markdown("<div style='text-align:right;margin-top:12px;font-size:13px;color:#2a9d8f'>🌐 English</div>")
+
+    switch_status = gr.Markdown()
 
     with gr.Tabs():
 
         # HOME
         with gr.TabItem("🏠 Home"):
-            home_cards_md = gr.HTML(get_home_cards())
-            data = load_data()
-            commission, dividend, prized_amount, total_collected, pending, paid_count = calculate_summary(data)
-            gr.Markdown(f"**{data['chit_name']}** &nbsp;|&nbsp; **Month {data['current_month']}** &nbsp;|&nbsp; **{paid_count}/{data['members']} members paid** &nbsp;|&nbsp; Chit Value: ₹{data['chit_value']:,}")
+            home_cards_md = gr.HTML(get_home_cards(_active))
             gr.Markdown("---")
             gr.HTML("""
 <div style='display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px'>
     <div onclick="document.querySelectorAll('.tab-nav button')[1].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
+    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
         <div style='font-size:40px'>➕</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>New Chit Fund</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>Create a new chit fund from scratch</div>
     </div>
     <div onclick="document.querySelectorAll('.tab-nav button')[2].click()"
-    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
+    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
         <div style='font-size:40px'>📤</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Upload & Digitize</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>Upload chit book photo and digitize</div>
     </div>
     <div onclick="document.querySelectorAll('.tab-nav button')[3].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
+    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
         <div style='font-size:40px'>👤</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Member Dashboard</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>View member details and send alerts</div>
@@ -409,14 +514,13 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             create_output = gr.Markdown()
             new_chit_table = gr.HTML()
             gr.Markdown("---")
-            gr.Markdown("### ⚙️ Manage Fields")
-            gr.Markdown("*Add or remove any field — including default ones*")
+            gr.Markdown("### ⚙️ Manage Fields *(for currently selected chit fund)*")
             with gr.Row():
                 suggested_dd = gr.Dropdown(choices=SUGGESTED_FIELDS, label="Pick from suggestions", scale=2)
                 custom_field_input = gr.Textbox(label="Or type your own field name", scale=2)
                 add_field_btn = gr.Button("➕ Add Field", variant="primary", scale=1)
             with gr.Row():
-                remove_field_dd = gr.Dropdown(choices=get_custom_fields_list(), label="Select field to remove")
+                remove_field_dd = gr.Dropdown(choices=get_custom_fields_list(_active), label="Select field to remove")
                 remove_field_btn = gr.Button("🗑️ Remove Field", variant="stop")
             field_output = gr.Markdown()
             fields_table = gr.HTML()
@@ -424,12 +528,12 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             create_btn.click(create_new_chit,
                 inputs=[chit_name_input, chit_value_input, num_members_input,
                         monthly_sub_input, commission_input, start_date_input, member_names_input],
-                outputs=[create_output, new_chit_table])
+                outputs=[create_output, new_chit_table, chit_selector])
             add_field_btn.click(add_custom_field,
-                inputs=[custom_field_input, suggested_dd],
+                inputs=[custom_field_input, suggested_dd, chit_selector],
                 outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
             remove_field_btn.click(remove_custom_field,
-                inputs=[remove_field_dd],
+                inputs=[remove_field_dd, chit_selector],
                 outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
 
         # UPLOAD & DIGITIZE
@@ -440,9 +544,14 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             image_input = gr.Image(label="Chit Book Photo", height=250)
             submit_btn = gr.Button("✨ Digitize with AI", variant="primary", size="lg")
             upload_ledger = gr.HTML()
-            submit_btn.click(show_ledger_ai, inputs=[image_input, search_input], outputs=upload_ledger)
-            search_input.change(lambda s: get_ledger_html(s), inputs=search_input, outputs=upload_ledger)
-            en_app.load(lambda: get_ledger_html(), outputs=upload_ledger)
+            submit_btn.click(show_ledger_ai,
+                inputs=[image_input, search_input, chit_selector],
+                outputs=upload_ledger)
+            search_input.change(
+                lambda s, c: make_excel_table(c, s),
+                inputs=[search_input, chit_selector],
+                outputs=upload_ledger)
+            en_app.load(lambda: make_excel_table(), outputs=upload_ledger)
 
         # MEMBER DASHBOARD
         with gr.TabItem("👤 Member Dashboard"):
@@ -450,13 +559,10 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             gr.Markdown("*Click any row to view and edit that member's details*")
             dashboard_ledger = gr.HTML()
             gr.Markdown("---")
-            gr.Markdown("### Member Details")
-            data = load_data()
-            member_names_list = [m["name"] for m in data["members_list"]]
             member_dropdown = gr.Dropdown(
-                choices=member_names_list,
+                choices=_member_names,
                 label="Select Member",
-                value=member_names_list[0],
+                value=_member_names[0] if _member_names else None,
                 elem_id="member_select"
             )
             member_output = gr.Markdown()
@@ -468,33 +574,26 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             with gr.Row():
                 edit_amount = gr.Number(label="Monthly Amount (₹)", precision=0)
                 edit_status = gr.Dropdown(choices=["Paid", "Unpaid"], label="Payment Status")
-            gr.Markdown("*Custom fields:*")
             custom_fields_editor = gr.Textbox(
-                label="Custom Field Values (JSON format — auto filled when you click a row)",
-                lines=4,
+                label="Custom Field Values (JSON — auto filled on row click)",
+                lines=3,
                 placeholder='{"Phone": "9999999999", "Address": "Hyderabad"}'
             )
             edit_btn = gr.Button("💾 Save Changes", variant="primary")
             edit_output = gr.Markdown()
 
             member_dropdown.change(
-                lambda name: (
-                    *show_member(name)[:4],
-                    build_edit_form(name)
-                ),
-                inputs=member_dropdown,
+                lambda name, chit: show_member(name, chit),
+                inputs=[member_dropdown, chit_selector],
                 outputs=[member_output, send_btn, edit_amount, edit_status, custom_fields_editor]
             )
             send_btn.click(send_alert, inputs=member_dropdown, outputs=alert_output)
             edit_btn.click(edit_member,
-                inputs=[member_dropdown, edit_amount, edit_status, custom_fields_editor],
+                inputs=[member_dropdown, edit_amount, edit_status, custom_fields_editor, chit_selector],
                 outputs=[edit_output, dashboard_ledger])
-            en_app.load(lambda: get_ledger_html(), outputs=dashboard_ledger)
+            en_app.load(lambda: make_excel_table(), outputs=dashboard_ledger)
             en_app.load(
-                lambda: (
-                    *show_member(load_data()["members_list"][0]["name"])[:4],
-                    build_edit_form(load_data()["members_list"][0]["name"])
-                ),
+                lambda: show_member(_member_names[0] if _member_names else "", _active),
                 outputs=[member_output, send_btn, edit_amount, edit_status, custom_fields_editor]
             )
 
@@ -504,8 +603,18 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             bid_input = gr.Number(label="Enter Winning Bid (₹)", value=15000, minimum=1000, maximum=99000)
             calc_btn = gr.Button("Calculate", variant="primary")
             auction_output = gr.Markdown()
-            calc_btn.click(calculate_auction, inputs=bid_input, outputs=auction_output)
+            calc_btn.click(calculate_auction,
+                inputs=[bid_input, chit_selector],
+                outputs=auction_output)
             en_app.load(lambda: calculate_auction(15000), outputs=auction_output)
+
+    # ── Switch chit fund handler ───────────────────────────────
+    chit_selector.change(
+        switch_chit,
+        inputs=chit_selector,
+        outputs=[home_cards_md, upload_ledger, dashboard_ledger,
+                 member_dropdown, auction_output, switch_status]
+    )
 
 if __name__ == "__main__":
     en_app.launch(server_port=7861)
