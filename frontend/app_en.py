@@ -15,15 +15,19 @@ except:
     AI_AVAILABLE = False
 
 DATA_FILE = "../data/chit_data.json"
-DEFAULT_FIELDS = ["Phone", "Address", "Guarantor", "Loan Taken", "Notes"]
-SUGGESTED_FIELDS = ["Occupation", "Aadhar Number", "Bank Account", "Email", "Emergency Contact"]
+SUGGESTED_FIELDS = ["Phone", "Address", "Guarantor", "Loan Taken", "Notes", "Occupation", "Aadhar Number", "Bank Account", "Email", "Emergency Contact"]
 
 os.makedirs("../data", exist_ok=True)
 
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if content:
+                    return json.loads(content)
+        except:
+            pass
     return {
         "chit_name": "Sample Chit Fund",
         "chit_value": 100000,
@@ -71,61 +75,78 @@ def get_home_cards():
 <div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px'>
     <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
         <div style='font-size:32px;font-weight:bold;color:#2a9d8f'>{data['members']}</div>
-        <div style='font-size:13px;margin-top:4px;color:#264653;font-weight:500'>Total Members</div>
+        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Total Members</div>
     </div>
     <div style='background:#fefae0;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #e9c46a'>
         <div style='font-size:32px;font-weight:bold;color:#e76f51'>₹{total_collected:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#264653;font-weight:500'>Total Collected</div>
+        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Total Collected</div>
     </div>
     <div style='background:#fff0e6;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #f4a261'>
         <div style='font-size:32px;font-weight:bold;color:#f4a261'>₹{pending:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#264653;font-weight:500'>Pending Dues</div>
+        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Pending Dues</div>
     </div>
     <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
         <div style='font-size:32px;font-weight:bold;color:#264653'>₹{dividend:,.0f}</div>
-        <div style='font-size:13px;margin-top:4px;color:#264653;font-weight:500'>Dividend / Member</div>
+        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Dividend / Member</div>
     </div>
 </div>"""
 
 def make_excel_table(members_list, custom_fields, monthly_sub, current_month):
-    header_cols = ["#", "Member Name", "Monthly (₹)", "Status", "Dividend (₹)", "Due (₹)", "Months Paid"] + custom_fields
-    headers = "".join([f"<th style='background:#2a9d8f;color:#fefae0;padding:10px 14px;text-align:left;font-weight:600;font-size:13px;white-space:nowrap;border-right:1px solid #1e7d72'>{h}</th>" for h in header_cols])
-
-    rows_html = ""
     data = load_data()
     commission, dividend, _, _, _, _ = calculate_summary(data)
-
+    header_cols = ["#", "Member Name", "Monthly (₹)", "Status", "Dividend (₹)", "Due (₹)", "Months Paid"] + custom_fields
+    headers = "".join([
+        f"<th style='background:#2a9d8f;color:#ffffff;padding:12px 16px;text-align:left;font-weight:600;font-size:13px;white-space:nowrap;border-right:1px solid #1e7d72'>{h}</th>"
+        for h in header_cols
+    ])
+    rows_html = ""
     for i, m in enumerate(members_list):
         if m["missed"] >= 2:
-            status_badge = "<span style='background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500'>⚠️ Flagged</span>"
+            status_badge = "<span style='background:#fff3cd;color:#856404;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600'>⚠️ Flagged</span>"
         elif m["paid"]:
-            status_badge = "<span style='background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500'>✅ Paid</span>"
+            status_badge = "<span style='background:#d1fae5;color:#065f46;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600'>✅ Paid</span>"
         else:
-            status_badge = "<span style='background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500'>❌ Unpaid</span>"
-
+            status_badge = "<span style='background:#fee2e2;color:#991b1b;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600'>❌ Unpaid</span>"
         row_bg = "#ffffff" if i % 2 == 0 else "#f8fffe"
-        custom_cells = "".join([f"<td style='padding:10px 14px;font-size:13px;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m.get(field, '')}</td>" for field in custom_fields])
-
+        custom_cells = "".join([
+            f"<td style='padding:12px 16px;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m.get(field, '')}</td>"
+            for field in custom_fields
+        ])
+        due_color = "#e76f51" if m["due"] > 0 else "#2a9d8f"
         rows_html += f"""
-        <tr style='background:{row_bg}' onmouseover="this.style.background='#e8f5f3'" onmouseout="this.style.background='{row_bg}'" onclick="document.getElementById('member_select').value='{m['name']}';document.getElementById('member_select').dispatchEvent(new Event('change'))">
-            <td style='padding:10px 14px;font-size:13px;color:#2a9d8f;font-weight:600;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{i+1}</td>
-            <td style='padding:10px 14px;font-size:13px;font-weight:500;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m['name']}</td>
-            <td style='padding:10px 14px;font-size:13px;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{monthly_sub:,}</td>
-            <td style='padding:10px 14px;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{status_badge}</td>
-            <td style='padding:10px 14px;font-size:13px;color:#2a9d8f;font-weight:500;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{dividend:,.0f}</td>
-            <td style='padding:10px 14px;font-size:13px;color:{"#e76f51" if m["due"] > 0 else "#2a9d8f"};font-weight:500;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{m["due"]:,}</td>
-            <td style='padding:10px 14px;font-size:13px;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m["months_paid"]}/{current_month}</td>
+        <tr style='background:{row_bg};cursor:pointer'
+            onmouseover="this.style.background='#e8f5f3'"
+            onmouseout="this.style.background='{row_bg}'"
+            onclick="
+                var dd = document.querySelector('#member_select input');
+                if(dd) {{
+                    var nativeInput = dd;
+                    var lastValue = nativeInput.value;
+                    nativeInput.value = '{m['name']}';
+                    var event = new Event('input', {{ bubbles: true }});
+                    event.simulated = true;
+                    var tracker = nativeInput._valueTracker;
+                    if (tracker) {{ tracker.setValue(lastValue); }}
+                    nativeInput.dispatchEvent(event);
+                }}
+            ">
+            <td style='padding:12px 16px;font-size:13px;color:#2a9d8f;font-weight:700;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{i+1}</td>
+            <td style='padding:12px 16px;font-size:13px;color:#1a1a1a;font-weight:600;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m['name']}</td>
+            <td style='padding:12px 16px;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{monthly_sub:,}</td>
+            <td style='padding:12px 16px;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{status_badge}</td>
+            <td style='padding:12px 16px;font-size:13px;color:#2a9d8f;font-weight:600;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{dividend:,.0f}</td>
+            <td style='padding:12px 16px;font-size:13px;color:{due_color};font-weight:600;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>₹{m["due"]:,}</td>
+            <td style='padding:12px 16px;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e2f4f1;border-right:1px solid #e2f4f1'>{m["months_paid"]}/{current_month}</td>
             {custom_cells}
         </tr>"""
-
     return f"""
-<div style='overflow-x:auto;border-radius:12px;border:1.5px solid #2a9d8f;margin-top:8px'>
+<div style='overflow-x:auto;border-radius:12px;border:1.5px solid #2a9d8f;margin-top:8px;box-shadow:0 2px 8px rgba(42,157,143,0.1)'>
     <table style='width:100%;border-collapse:collapse;font-family:sans-serif'>
         <thead><tr>{headers}</tr></thead>
         <tbody>{rows_html}</tbody>
     </table>
 </div>
-<p style='font-size:12px;color:#64748b;margin-top:6px'>💡 Click any row to view member details below</p>"""
+<p style='font-size:12px;color:#64748b;margin-top:6px'>💡 Click any row to view and edit member details below</p>"""
 
 def get_ledger_html(search=""):
     data = load_data()
@@ -183,7 +204,7 @@ def calculate_auction(winning_bid):
 
 def show_member(name):
     if not name:
-        return "", gr.update(visible=False)
+        return "", gr.update(visible=False), None, "Paid", {f: "" for f in load_data().get("custom_fields", [])}
     data = load_data()
     commission, dividend, _, _, _, _ = calculate_summary(data)
     for m in data["members_list"]:
@@ -217,20 +238,23 @@ _ChitSync_ ✨"""
 ---
 {whatsapp}
 """
-            return info, gr.update(visible=True)
-    return "Member not found", gr.update(visible=False)
+            custom_vals = {f: m.get(f, "") for f in data.get("custom_fields", [])}
+            return info, gr.update(visible=True), data['monthly_sub'], "Paid" if m['paid'] else "Unpaid", custom_vals
+    return "Member not found", gr.update(visible=False), None, "Paid", {}
 
 def send_alert(name):
     if not name:
         return "⚠️ Please select a member first"
     return f"✅ WhatsApp alert sent to {name} successfully!"
 
-def edit_member(name, new_status):
+def edit_member(name, new_amount, new_status, custom_vals_json):
     if not name:
         return "⚠️ Please select a member first", get_ledger_html()
     data = load_data()
     for m in data["members_list"]:
         if m["name"] == name:
+            if new_amount:
+                data["monthly_sub"] = int(new_amount)
             if new_status == "Paid":
                 m["paid"] = True
                 m["due"] = 0
@@ -240,6 +264,13 @@ def edit_member(name, new_status):
                 m["paid"] = False
                 m["due"] = data["monthly_sub"]
                 m["missed"] += 1
+            try:
+                custom_vals = json.loads(custom_vals_json) if custom_vals_json else {}
+                for field, val in custom_vals.items():
+                    if field in data["custom_fields"]:
+                        m[field] = val
+            except:
+                pass
             save_data(data)
             return f"✅ Record updated for {name}!", get_ledger_html()
     return "Member not found", get_ledger_html()
@@ -269,32 +300,42 @@ def create_new_chit(chit_name, chit_value, num_members, monthly_sub, commission_
     return f"✅ '{chit_name}' created with {int(num_members)} members!", table
 
 def add_custom_field(field_name, suggested):
-    field = field_name if field_name else suggested
+    field = field_name.strip() if field_name and field_name.strip() else suggested
     if not field:
-        return "⚠️ Enter a field name first!", gr.update(), get_ledger_html()
+        return "⚠️ Enter a field name first!", gr.update(), gr.update(), get_ledger_html()
     data = load_data()
     if field in data["custom_fields"]:
-        return f"⚠️ '{field}' already exists!", gr.update(), get_ledger_html()
+        return f"⚠️ '{field}' already exists!", gr.update(), gr.update(), get_ledger_html()
     data["custom_fields"].append(field)
     for m in data["members_list"]:
         m[field] = ""
     save_data(data)
-    return f"✅ Field '{field}' added!", gr.update(choices=data["custom_fields"]), get_ledger_html()
+    fields = data["custom_fields"]
+    return f"✅ Field '{field}' added!", gr.update(choices=fields), gr.update(choices=fields), get_ledger_html()
 
 def remove_custom_field(field_name):
     if not field_name:
-        return "⚠️ Select a field to remove!", gr.update(), get_ledger_html()
+        return "⚠️ Select a field to remove!", gr.update(), gr.update(), get_ledger_html()
     data = load_data()
-    if field_name in DEFAULT_FIELDS:
-        return f"⚠️ Cannot remove default field '{field_name}'!", gr.update(), get_ledger_html()
+    if field_name not in data["custom_fields"]:
+        return "Field not found!", gr.update(), gr.update(), get_ledger_html()
     data["custom_fields"].remove(field_name)
     for m in data["members_list"]:
         m.pop(field_name, None)
     save_data(data)
-    return f"✅ Field '{field_name}' removed!", gr.update(choices=data["custom_fields"]), get_ledger_html()
+    fields = data["custom_fields"]
+    return f"✅ Field '{field_name}' removed!", gr.update(choices=fields), gr.update(choices=fields), get_ledger_html()
 
 def get_custom_fields_list():
-    return load_data().get("custom_fields", DEFAULT_FIELDS)
+    return load_data().get("custom_fields", [])
+
+def build_edit_form(name):
+    data = load_data()
+    for m in data["members_list"]:
+        if m["name"] == name:
+            fields = data.get("custom_fields", [])
+            return json.dumps({f: m.get(f, "") for f in fields})
+    return "{}"
 
 CSS = """
 footer { display: none !important; }
@@ -309,28 +350,7 @@ footer { display: none !important; }
 }
 """
 
-THEME_SCRIPT = """
-<script>
-function toggleTheme() {
-    const root = document.documentElement;
-    const isDark = root.classList.contains('dark');
-    if (isDark) {
-        root.classList.remove('dark');
-        document.getElementById('themeBtn').textContent = '🌙';
-    } else {
-        root.classList.add('dark');
-        document.getElementById('themeBtn').textContent = '☀️';
-    }
-}
-</script>
-<button id='themeBtn' onclick='toggleTheme()' style='position:fixed;top:12px;right:12px;z-index:9999;
-width:38px;height:38px;border-radius:50%;background:#2a9d8f;color:white;border:none;
-font-size:16px;cursor:pointer'>🌙</button>
-"""
-
-with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
-
-    gr.HTML(THEME_SCRIPT)
+with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as en_app:
 
     with gr.Row(equal_height=True):
         with gr.Column(scale=8):
@@ -348,22 +368,22 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
             commission, dividend, prized_amount, total_collected, pending, paid_count = calculate_summary(data)
             gr.Markdown(f"**{data['chit_name']}** &nbsp;|&nbsp; **Month {data['current_month']}** &nbsp;|&nbsp; **{paid_count}/{data['members']} members paid** &nbsp;|&nbsp; Chit Value: ₹{data['chit_value']:,}")
             gr.Markdown("---")
-            gr.HTML(f"""
+            gr.HTML("""
 <div style='display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px'>
     <div onclick="document.querySelectorAll('.tab-nav button')[1].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
+    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
         <div style='font-size:40px'>➕</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>New Chit Fund</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>Create a new chit fund from scratch</div>
     </div>
     <div onclick="document.querySelectorAll('.tab-nav button')[2].click()"
-    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
+    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
         <div style='font-size:40px'>📤</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Upload & Digitize</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>Upload chit book photo and digitize</div>
     </div>
     <div onclick="document.querySelectorAll('.tab-nav button')[3].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
+    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:0.2s'>
         <div style='font-size:40px'>👤</div>
         <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Member Dashboard</div>
         <div style='font-size:12px;color:#64748b;margin-top:6px'>View member details and send alerts</div>
@@ -374,7 +394,6 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
         # NEW CHIT FUND
         with gr.TabItem("➕ New Chit Fund"):
             gr.Markdown("### Create a New Chit Fund")
-            gr.Markdown("*Fill in the details to start a new chit fund*")
             with gr.Row():
                 chit_name_input = gr.Textbox(label="Chit Fund Name", placeholder="e.g. Lakshmi Chit Fund")
                 start_date_input = gr.Textbox(label="Start Date", value=str(date.today()))
@@ -385,17 +404,13 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
                 monthly_sub_input = gr.Number(label="Monthly Subscription (₹)", value=5000)
                 commission_input = gr.Number(label="Foreman Commission (%)", value=5)
             gr.Markdown("### Member Names *(one per line)*")
-            member_names_input = gr.Textbox(
-                label="Member Names",
-                placeholder="Ravi\nLakshmi\nSuresh\n...",
-                lines=10
-            )
+            member_names_input = gr.Textbox(label="Member Names", placeholder="Ravi\nLakshmi\nSuresh\n...", lines=10)
             create_btn = gr.Button("✅ Create Chit Fund", variant="primary", size="lg")
             create_output = gr.Markdown()
             new_chit_table = gr.HTML()
-
             gr.Markdown("---")
-            gr.Markdown("### ⚙️ Manage Custom Fields")
+            gr.Markdown("### ⚙️ Manage Fields")
+            gr.Markdown("*Add or remove any field — including default ones*")
             with gr.Row():
                 suggested_dd = gr.Dropdown(choices=SUGGESTED_FIELDS, label="Pick from suggestions", scale=2)
                 custom_field_input = gr.Textbox(label="Or type your own field name", scale=2)
@@ -406,22 +421,16 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
             field_output = gr.Markdown()
             fields_table = gr.HTML()
 
-            create_btn.click(
-                create_new_chit,
+            create_btn.click(create_new_chit,
                 inputs=[chit_name_input, chit_value_input, num_members_input,
                         monthly_sub_input, commission_input, start_date_input, member_names_input],
-                outputs=[create_output, new_chit_table]
-            )
-            add_field_btn.click(
-                add_custom_field,
+                outputs=[create_output, new_chit_table])
+            add_field_btn.click(add_custom_field,
                 inputs=[custom_field_input, suggested_dd],
-                outputs=[field_output, remove_field_dd, fields_table]
-            )
-            remove_field_btn.click(
-                remove_custom_field,
+                outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
+            remove_field_btn.click(remove_custom_field,
                 inputs=[remove_field_dd],
-                outputs=[field_output, remove_field_dd, fields_table]
-            )
+                outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
 
         # UPLOAD & DIGITIZE
         with gr.TabItem("📤 Upload & Digitize"):
@@ -430,16 +439,18 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
             search_input = gr.Textbox(label="🔍 Search member by name", placeholder="Type a name...")
             image_input = gr.Image(label="Chit Book Photo", height=250)
             submit_btn = gr.Button("✨ Digitize with AI", variant="primary", size="lg")
-            ledger_html = gr.HTML()
-            submit_btn.click(show_ledger_ai, inputs=[image_input, search_input], outputs=ledger_html)
-            search_input.change(lambda s: get_ledger_html(s), inputs=search_input, outputs=ledger_html)
-            en_app.load(lambda: get_ledger_html(), outputs=ledger_html)
+            upload_ledger = gr.HTML()
+            submit_btn.click(show_ledger_ai, inputs=[image_input, search_input], outputs=upload_ledger)
+            search_input.change(lambda s: get_ledger_html(s), inputs=search_input, outputs=upload_ledger)
+            en_app.load(lambda: get_ledger_html(), outputs=upload_ledger)
 
         # MEMBER DASHBOARD
         with gr.TabItem("👤 Member Dashboard"):
             gr.Markdown("### Member Ledger")
+            gr.Markdown("*Click any row to view and edit that member's details*")
             dashboard_ledger = gr.HTML()
-            gr.Markdown("### Select a member to view details")
+            gr.Markdown("---")
+            gr.Markdown("### Member Details")
             data = load_data()
             member_names_list = [m["name"] for m in data["members_list"]]
             member_dropdown = gr.Dropdown(
@@ -454,15 +465,38 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
             alert_output = gr.Markdown()
             gr.Markdown("---")
             gr.Markdown("### ✏️ Edit Member Record")
-            edit_status = gr.Dropdown(choices=["Paid", "Unpaid"], label="Update Payment Status")
-            edit_btn = gr.Button("💾 Save Changes", variant="secondary")
+            with gr.Row():
+                edit_amount = gr.Number(label="Monthly Amount (₹)", precision=0)
+                edit_status = gr.Dropdown(choices=["Paid", "Unpaid"], label="Payment Status")
+            gr.Markdown("*Custom fields:*")
+            custom_fields_editor = gr.Textbox(
+                label="Custom Field Values (JSON format — auto filled when you click a row)",
+                lines=4,
+                placeholder='{"Phone": "9999999999", "Address": "Hyderabad"}'
+            )
+            edit_btn = gr.Button("💾 Save Changes", variant="primary")
             edit_output = gr.Markdown()
 
-            member_dropdown.change(show_member, inputs=member_dropdown, outputs=[member_output, send_btn])
+            member_dropdown.change(
+                lambda name: (
+                    *show_member(name)[:4],
+                    build_edit_form(name)
+                ),
+                inputs=member_dropdown,
+                outputs=[member_output, send_btn, edit_amount, edit_status, custom_fields_editor]
+            )
             send_btn.click(send_alert, inputs=member_dropdown, outputs=alert_output)
-            edit_btn.click(edit_member, inputs=[member_dropdown, edit_status], outputs=[edit_output, dashboard_ledger])
+            edit_btn.click(edit_member,
+                inputs=[member_dropdown, edit_amount, edit_status, custom_fields_editor],
+                outputs=[edit_output, dashboard_ledger])
             en_app.load(lambda: get_ledger_html(), outputs=dashboard_ledger)
-            en_app.load(lambda: show_member(load_data()["members_list"][0]["name"]), outputs=[member_output, send_btn])
+            en_app.load(
+                lambda: (
+                    *show_member(load_data()["members_list"][0]["name"])[:4],
+                    build_edit_form(load_data()["members_list"][0]["name"])
+                ),
+                outputs=[member_output, send_btn, edit_amount, edit_status, custom_fields_editor]
+            )
 
         # AUCTION CALCULATOR
         with gr.TabItem("🔨 Auction Calculator"):
@@ -474,4 +508,4 @@ with gr.Blocks(title="ChitSync — English", css=CSS) as en_app:
             en_app.load(lambda: calculate_auction(15000), outputs=auction_output)
 
 if __name__ == "__main__":
-    en_app.launch(server_port=7861, prevent_thread_lock=True, quiet=True)
+    en_app.launch(server_port=7861)
