@@ -118,28 +118,27 @@ def get_home_cards(chit_name=None):
     data = load_chit(chit_name)
     commission, dividend, prized_amount, total_collected, pending, paid_count = calculate_summary(data)
     return f"""
-<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px'>
-    <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
-        <div style='font-size:32px;font-weight:bold;color:#2a9d8f'>{data['members']}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Total Members</div>
+<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px'>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{total_collected:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>Total Collected</div>
     </div>
-    <div style='background:#fefae0;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #e9c46a'>
-        <div style='font-size:32px;font-weight:bold;color:#e76f51'>₹{total_collected:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Total Collected</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{pending:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>Pending Dues</div>
     </div>
-    <div style='background:#fff0e6;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #f4a261'>
-        <div style='font-size:32px;font-weight:bold;color:#f4a261'>₹{pending:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Pending Dues</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{prized_amount:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>Prized Amount</div>
     </div>
-    <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
-        <div style='font-size:32px;font-weight:bold;color:#264653'>₹{dividend:,.0f}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>Dividend / Member</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{dividend:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>Dividend / Member</div>
     </div>
 </div>
-<div style='background:#f0faf8;border:1px solid #2a9d8f;border-radius:8px;padding:10px 16px;font-size:13px;color:#264653'>
-    <b>{data['chit_name']}</b> &nbsp;|&nbsp; Month {data['current_month']} &nbsp;|&nbsp;
-    {paid_count}/{data['members']} members paid &nbsp;|&nbsp; Chit Value: ₹{data['chit_value']:,} &nbsp;|&nbsp;
-    Winning Bid: ₹{data.get('winning_bid',0):,}
+<div style='background:rgba(0, 242, 254, 0.05);border:1px solid var(--primary);border-radius:12px;padding:12px 20px;font-size:14px;color:var(--text-main)'>
+    <span style="color: var(--primary)">●</span> <b>{data['chit_name']}</b> &nbsp;|&nbsp; Month {data['current_month']} &nbsp;|&nbsp;
+    {paid_count}/{data['members']} members paid &nbsp;|&nbsp; Value: ₹{data['chit_value']:,}
 </div>"""
 
 def make_excel_table(chit_name=None, search=""):
@@ -422,23 +421,130 @@ def get_custom_fields_list(chit_name=None):
     return load_chit(chit_name).get("custom_fields", [])
 
 CSS = """
-footer { display: none !important; }
-.gradio-container {
-    max-width: 1100px !important;
-    margin: auto !important;
-    padding: 24px !important;
+/* Professor CSS Refinement - Advanced India-Fintech Aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #00f2fe;    /* Neon Cyan */
+    --secondary: #3a7bd5;  /* Deep Blue */
+    --bg-dark: #0b0e14;    /* Deep Navy */
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --accent: #f59e0b;     /* Amber */
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
 }
-.tab-nav button {
-    font-size: 14px !important;
-    padding: 10px 16px !important;
+
+body, .gradio-container {
+    background: radial-gradient(circle at top right, #1e293b 0%, var(--bg-dark) 100%) !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    color: var(--text-main) !important;
 }
-#chit-selector {
-    background: #e8f5f3 !important;
-    border: 1.5px solid #2a9d8f !important;
-    border-radius: 8px !important;
+
+/* Big Action Cards */
+.action-card {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    padding: 30px 20px !important;
+    text-align: center;
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 15px 40px rgba(0, 242, 254, 0.15) !important;
+}
+
+.action-card .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.3));
+}
+
+.action-card .title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.action-card .desc {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Navigation & Tabs */
+.nav-bar button, .tab-nav button {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-muted) !important;
     font-weight: 600 !important;
-    color: #264653 !important;
+    transition: 0.3s !important;
 }
+
+.nav-bar button:hover, .tab-nav button:hover {
+    color: var(--primary) !important;
+}
+
+.tab-nav button[aria-selected="true"] {
+    color: var(--primary) !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+/* Metric Boxes */
+.metric-box {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 16px !important;
+    border-left: 4px solid var(--primary) !important;
+    padding: 20px !important;
+    border: 1px solid var(--glass-border);
+}
+
+.metric-value {
+    color: var(--primary);
+    font-size: 28px;
+    font-weight: 800;
+}
+
+/* Form Elements Styling */
+.gr-textbox, .gr-number, .gr-dropdown {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, var(--secondary) 0%, #2563eb 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+.gr-button-primary:hover {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4) !important;
+    transform: translateY(-2px);
+}
+
+#chit-selector {
+    background: rgba(0, 242, 254, 0.05) !important;
+    border: 1.5px solid var(--primary) !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    color: var(--primary) !important;
+}
+
+footer { display: none !important; }
 """
 
 # ── Bootstrap ──────────────────────────────────────────────────
@@ -448,12 +554,12 @@ _all_chits = _index.get("chits", ["Sample Chit Fund"])
 _data = load_chit(_active)
 _member_names = [m["name"] for m in _data["members_list"]]
 
-with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as en_app:
+with gr.Blocks(title="ChitFund — English", css=CSS) as en_app:
 
     # ── Global chit selector ───────────────────────────────────
     with gr.Row(equal_height=True):
         with gr.Column(scale=6):
-            gr.Markdown("# 🏦 ChitSync")
+            gr.HTML("<div style='font-size:32px; font-weight:800; color:var(--primary); font-family: \"Times New Roman\", serif'>🏦 Chit Fund</div>")
             gr.Markdown("### Transparent. Digital. Instant. — Built for India")
         with gr.Column(scale=3):
             chit_selector = gr.Dropdown(
@@ -463,41 +569,38 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
                 elem_id="chit-selector"
             )
         with gr.Column(scale=1, min_width=60):
-            gr.Markdown("<div style='text-align:right;margin-top:12px;font-size:13px;color:#2a9d8f'>🌐 English</div>")
+            gr.HTML("<div style='text-align:right;margin-top:12px;font-size:14px;font-weight:700;color:var(--primary); font-family: \"Times New Roman\", serif'>English</div>")
 
     switch_status = gr.Markdown()
 
-    with gr.Tabs():
+    with gr.Tabs() as main_tabs:
 
         # HOME
-        with gr.TabItem("🏠 Home"):
+        with gr.TabItem("🏠 Home", id=0):
             home_cards_md = gr.HTML(get_home_cards(_active))
             gr.Markdown("---")
-            gr.HTML("""
-<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px'>
-    <div onclick="document.querySelectorAll('.tab-nav button')[1].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>➕</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>New Chit Fund</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>Create a new chit fund from scratch</div>
-    </div>
-    <div onclick="document.querySelectorAll('.tab-nav button')[2].click()"
-    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>📤</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Upload & Digitize</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>Upload chit book photo and digitize</div>
-    </div>
-    <div onclick="document.querySelectorAll('.tab-nav button')[3].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>👤</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>Member Dashboard</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>View member details and send alerts</div>
-    </div>
-</div>""")
-            gr.Markdown("<div style='text-align:center;margin-top:24px;color:#94a3b8;font-size:12px'>Powered by Ollama + EasyOCR + Gradio</div>")
+            
+            with gr.Row():
+                with gr.Column(elem_classes=["action-card"]):
+                    nc_btn = gr.Button("➕\n\nNew Chit Fund\nSetup schema and members", variant="secondary", elem_classes=["action-card"])
+                with gr.Column(elem_classes=["action-card"]):
+                    ul_btn = gr.Button("📤\n\nUpload & Digitize\nAI extraction from ledgers", variant="secondary", elem_classes=["action-card"])
+            
+            with gr.Row():
+                with gr.Column(elem_classes=["action-card"]):
+                    db_btn = gr.Button("👤\n\nMember Dashboard\nTrack payments and alerts", variant="secondary", elem_classes=["action-card"])
+                with gr.Column(elem_classes=["action-card"]):
+                    ac_btn = gr.Button("🔨\n\nAuction Calculator\nCalculate bids and dividends", variant="secondary", elem_classes=["action-card"])
+
+            nc_btn.click(lambda: gr.Tabs(selected=1), None, main_tabs)
+            ul_btn.click(lambda: gr.Tabs(selected=2), None, main_tabs)
+            db_btn.click(lambda: gr.Tabs(selected=3), None, main_tabs)
+            ac_btn.click(lambda: gr.Tabs(selected=4), None, main_tabs)
+
+            gr.Markdown("<div style='text-align:center;margin-top:24px;color:var(--text-muted);font-size:12px'>Powered by Ollama + EasyOCR + Gradio</div>")
 
         # NEW CHIT FUND
-        with gr.TabItem("➕ New Chit Fund"):
+        with gr.TabItem("➕ New Chit Fund", id=1):
             gr.Markdown("### Create a New Chit Fund")
             with gr.Row():
                 chit_name_input = gr.Textbox(label="Chit Fund Name", placeholder="e.g. Lakshmi Chit Fund")
@@ -537,7 +640,7 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
                 outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
 
         # UPLOAD & DIGITIZE
-        with gr.TabItem("📤 Upload & Digitize"):
+        with gr.TabItem("📤 Upload & Digitize", id=2):
             gr.Markdown("### Upload a photo of your physical Chit Book")
             gr.Markdown("*The AI agent will read and extract all member data automatically*")
             search_input = gr.Textbox(label="🔍 Search member by name", placeholder="Type a name...")
@@ -554,7 +657,7 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             en_app.load(lambda: make_excel_table(), outputs=upload_ledger)
 
         # MEMBER DASHBOARD
-        with gr.TabItem("👤 Member Dashboard"):
+        with gr.TabItem("👤 Member Dashboard", id=3):
             gr.Markdown("### Member Ledger")
             gr.Markdown("*Click any row to view and edit that member's details*")
             dashboard_ledger = gr.HTML()
@@ -598,7 +701,7 @@ with gr.Blocks(title="ChitSync — English", css=CSS, theme=gr.themes.Soft()) as
             )
 
         # AUCTION CALCULATOR
-        with gr.TabItem("🔨 Auction Calculator"):
+        with gr.TabItem("🔨 Auction Calculator", id=4):
             gr.Markdown("### Calculate dividend for any winning bid")
             bid_input = gr.Number(label="Enter Winning Bid (₹)", value=15000, minimum=1000, maximum=99000)
             calc_btn = gr.Button("Calculate", variant="primary")

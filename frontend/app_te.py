@@ -111,27 +111,27 @@ def get_home_cards(chit_name=None):
     data = load_chit(chit_name)
     commission, dividend, prized_amount, total_collected, pending, paid_count = calculate_summary(data)
     return f"""
-<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px'>
-    <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
-        <div style='font-size:32px;font-weight:bold;color:#2a9d8f'>{data['members']}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>మొత్తం సభ్యులు</div>
+<div style='display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px'>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{total_collected:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>మొత్తం సేకరించినది</div>
     </div>
-    <div style='background:#fefae0;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #e9c46a'>
-        <div style='font-size:32px;font-weight:bold;color:#e76f51'>₹{total_collected:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>మొత్తం సేకరించినది</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{pending:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>పెండింగ్ బకాయిలు</div>
     </div>
-    <div style='background:#fff0e6;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #f4a261'>
-        <div style='font-size:32px;font-weight:bold;color:#f4a261'>₹{pending:,}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>పెండింగ్ బకాయిలు</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{prized_amount:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>ప్రైజ్డ్ మొత్తం</div>
     </div>
-    <div style='background:#e8f5f3;padding:20px;border-radius:12px;text-align:center;border:1.5px solid #2a9d8f'>
-        <div style='font-size:32px;font-weight:bold;color:#264653'>₹{dividend:,.0f}</div>
-        <div style='font-size:13px;margin-top:4px;color:#1a1a1a;font-weight:500'>డివిడెండ్ / సభ్యుడు</div>
+    <div class='metric-box'>
+        <div class='metric-value'>₹{dividend:,.0f}</div>
+        <div style='font-size:13px;margin-top:4px;color:var(--text-muted);font-weight:500'>డివిడెండ్ / సభ్యుడు</div>
     </div>
 </div>
-<div style='background:#f0faf8;border:1px solid #2a9d8f;border-radius:8px;padding:10px 16px;font-size:13px;color:#264653'>
-    <b>{data['chit_name']}</b> &nbsp;|&nbsp; నెల {data['current_month']} &nbsp;|&nbsp;
-    {paid_count}/{data['members']} సభ్యులు చెల్లించారు &nbsp;|&nbsp; చిట్ విలువ: ₹{data['chit_value']:,}
+<div style='background:rgba(0, 242, 254, 0.05);border:1px solid var(--primary);border-radius:12px;padding:12px 20px;font-size:14px;color:var(--text-main)'>
+    <span style="color: var(--primary)">●</span> <b>{data['chit_name']}</b> &nbsp;|&nbsp; నెల {data['current_month']} &nbsp;|&nbsp;
+    {paid_count}/{data['members']} సభ్యులు చెల్లించారు &nbsp;|&nbsp; విలువ: ₹{data['chit_value']:,}
 </div>"""
 
 def make_excel_table(chit_name=None, search=""):
@@ -412,23 +412,130 @@ def get_custom_fields_list(chit_name=None):
     return load_chit(chit_name).get("custom_fields", [])
 
 CSS = """
-footer { display: none !important; }
-.gradio-container {
-    max-width: 1100px !important;
-    margin: auto !important;
-    padding: 24px !important;
+/* Professor CSS Refinement - Advanced India-Fintech Aesthetic */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #00f2fe;    /* Neon Cyan */
+    --secondary: #3a7bd5;  /* Deep Blue */
+    --bg-dark: #0b0e14;    /* Deep Navy */
+    --card-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --accent: #f59e0b;     /* Amber */
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
 }
-.tab-nav button {
-    font-size: 14px !important;
-    padding: 10px 16px !important;
+
+body, .gradio-container {
+    background: radial-gradient(circle at top right, #1e293b 0%, var(--bg-dark) 100%) !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    color: var(--text-main) !important;
 }
-#chit-selector-te {
-    background: #e8f5f3 !important;
-    border: 1.5px solid #2a9d8f !important;
-    border-radius: 8px !important;
+
+/* Big Action Cards */
+.action-card {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    padding: 30px 20px !important;
+    text-align: center;
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 15px 40px rgba(0, 242, 254, 0.15) !important;
+}
+
+.action-card .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.3));
+}
+
+.action-card .title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.action-card .desc {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Navigation & Tabs */
+.nav-bar button, .tab-nav button {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-muted) !important;
     font-weight: 600 !important;
-    color: #264653 !important;
+    transition: 0.3s !important;
 }
+
+.nav-bar button:hover, .tab-nav button:hover {
+    color: var(--primary) !important;
+}
+
+.tab-nav button[aria-selected="true"] {
+    color: var(--primary) !important;
+    border-bottom: 2px solid var(--primary) !important;
+}
+
+/* Metric Boxes */
+.metric-box {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 16px !important;
+    border-left: 4px solid var(--primary) !important;
+    padding: 20px !important;
+    border: 1px solid var(--glass-border);
+}
+
+.metric-value {
+    color: var(--primary);
+    font-size: 28px;
+    font-weight: 800;
+}
+
+/* Form Elements Styling */
+.gr-textbox, .gr-number, .gr-dropdown {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, var(--secondary) 0%, #2563eb 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2) !important;
+    border-radius: 12px !important;
+}
+
+.gr-button-primary:hover {
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4) !important;
+    transform: translateY(-2px);
+}
+
+#chit-selector-te {
+    background: rgba(0, 242, 254, 0.05) !important;
+    border: 1.5px solid var(--primary) !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    color: var(--primary) !important;
+}
+
+footer { display: none !important; }
 """
 
 _index = load_index()
@@ -437,11 +544,11 @@ _all_chits = _index.get("chits", ["నమూనా చిట్ ఫండ్"])
 _data = load_chit(_active)
 _member_names = [m["name"] for m in _data["members_list"]]
 
-with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.Soft()) as te_app:
+with gr.Blocks(title="చిట్‌ఫండ్ — తెలుగు", css=CSS) as te_app:
 
     with gr.Row(equal_height=True):
         with gr.Column(scale=6):
-            gr.Markdown("# 🏦 చిట్‌సింక్")
+            gr.HTML("<div style='font-size:32px; font-weight:800; color:var(--primary); font-family: \"Times New Roman\", serif'>🏦 చిట్‌ఫండ్</div>")
             gr.Markdown("### పారదర్శకంగా. డిజిటల్‌గా. తక్షణమే. — భారతదేశం కోసం")
         with gr.Column(scale=3):
             chit_selector = gr.Dropdown(
@@ -451,39 +558,38 @@ with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.
                 elem_id="chit-selector-te"
             )
         with gr.Column(scale=1, min_width=60):
-            gr.Markdown("<div style='text-align:right;margin-top:12px;font-size:13px;color:#2a9d8f'>🌐 తెలుగు</div>")
+            gr.HTML("<div style='text-align:right;margin-top:12px;font-size:14px;font-weight:700;color:var(--primary); font-family: \"Times New Roman\", serif'>తెలుగు</div>")
 
     switch_status = gr.Markdown()
 
-    with gr.Tabs():
+    with gr.Tabs() as main_tabs:
 
-        with gr.TabItem("🏠 హోమ్"):
+        # HOME
+        with gr.TabItem("🏠 హోమ్", id=0):
             home_cards_md = gr.HTML(get_home_cards(_active))
             gr.Markdown("---")
-            gr.HTML("""
-<div style='display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px'>
-    <div onclick="document.querySelectorAll('.tab-nav button')[1].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>➕</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>కొత్త చిట్ ఫండ్</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>కొత్త చిట్ ఫండ్ ప్రారంభించండి</div>
-    </div>
-    <div onclick="document.querySelectorAll('.tab-nav button')[2].click()"
-    style='background:#fefae0;border:1.5px solid #e9c46a;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>📤</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>అప్‌లోడ్ & డిజిటైజ్</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>చిట్ బుక్ ఫోటో అప్‌లోడ్ చేయండి</div>
-    </div>
-    <div onclick="document.querySelectorAll('.tab-nav button')[3].click()"
-    style='background:#e8f5f3;border:1.5px solid #2a9d8f;border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer'>
-        <div style='font-size:40px'>👤</div>
-        <div style='font-size:16px;font-weight:600;margin-top:12px;color:#264653'>సభ్యుల డాష్‌బోర్డ్</div>
-        <div style='font-size:12px;color:#64748b;margin-top:6px'>సభ్యుని వివరాలు చూడండి</div>
-    </div>
-</div>""")
-            gr.Markdown("<div style='text-align:center;margin-top:24px;color:#94a3b8;font-size:12px'>Ollama + EasyOCR + Gradio తో నిర్మించబడింది</div>")
+            
+            with gr.Row():
+                with gr.Column(elem_classes=["action-card"]):
+                    nc_btn = gr.Button("➕\n\nకొత్త చిట్ ఫండ్\nస్కీమా మరియు సభ్యుల సెటప్", variant="secondary", elem_classes=["action-card"])
+                with gr.Column(elem_classes=["action-card"]):
+                    ul_btn = gr.Button("📤\n\nఅప్‌లోడ్ & డిజిటైజ్\nAI ద్వారా లెడ్జర్ వెలికితీత", variant="secondary", elem_classes=["action-card"])
+            
+            with gr.Row():
+                with gr.Column(elem_classes=["action-card"]):
+                    db_btn = gr.Button("👤\n\nసభ్యుల డాష్‌బోర్డ్\nచెల్లింపులు మరియు హెచ్చరికలు", variant="secondary", elem_classes=["action-card"])
+                with gr.Column(elem_classes=["action-card"]):
+                    ac_btn = gr.Button("🔨\n\nవేలం కాలిక్యులేటర్\nబిడ్‌లు మరియు డివిడెండ్‌లు", variant="secondary", elem_classes=["action-card"])
 
-        with gr.TabItem("➕ కొత్త చిట్ ఫండ్"):
+            nc_btn.click(lambda: gr.Tabs(selected=1), None, main_tabs)
+            ul_btn.click(lambda: gr.Tabs(selected=2), None, main_tabs)
+            db_btn.click(lambda: gr.Tabs(selected=3), None, main_tabs)
+            ac_btn.click(lambda: gr.Tabs(selected=4), None, main_tabs)
+
+            gr.Markdown("<div style='text-align:center;margin-top:24px;color:var(--text-muted);font-size:12px'>Ollama + EasyOCR + Gradio తో నిర్మించబడింది</div>")
+
+        # NEW CHIT FUND
+        with gr.TabItem("➕ కొత్త చిట్ ఫండ్", id=1):
             gr.Markdown("### కొత్త చిట్ ఫండ్ సృష్టించండి")
             with gr.Row():
                 chit_name_input = gr.Textbox(label="చిట్ ఫండ్ పేరు", placeholder="ఉదా: లక్ష్మి చిట్ ఫండ్")
@@ -494,6 +600,7 @@ with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.
             with gr.Row():
                 monthly_sub_input = gr.Number(label="నెలవారీ చందా (₹)", value=5000)
                 commission_input = gr.Number(label="ఫోర్‌మన్ కమీషన్ (%)", value=5)
+            # member names label
             gr.Markdown("### సభ్యుల పేర్లు *(ఒక్కో వరుసలో)*")
             member_names_input = gr.Textbox(label="సభ్యుల పేర్లు", placeholder="రవి\nలక్ష్మి\nసురేష్\n...", lines=10)
             create_btn = gr.Button("✅ చిట్ ఫండ్ సృష్టించండి", variant="primary", size="lg")
@@ -522,7 +629,8 @@ with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.
                 inputs=[remove_field_dd, chit_selector],
                 outputs=[field_output, suggested_dd, remove_field_dd, fields_table])
 
-        with gr.TabItem("📤 అప్‌లోడ్ & డిజిటైజ్"):
+        # UPLOAD & DIGITIZE
+        with gr.TabItem("📤 అప్‌లోడ్ & డిజిటైజ్", id=2):
             gr.Markdown("### మీ చిట్ బుక్ ఫోటో అప్‌లోడ్ చేయండి")
             search_input = gr.Textbox(label="🔍 పేరు ద్వారా వెతకండి", placeholder="పేరు టైప్ చేయండి...")
             image_input = gr.Image(label="చిట్ బుక్ ఫోటో", height=250)
@@ -537,7 +645,8 @@ with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.
                 outputs=upload_ledger)
             te_app.load(lambda: make_excel_table(), outputs=upload_ledger)
 
-        with gr.TabItem("👤 సభ్యుల డాష్‌బోర్డ్"):
+        # MEMBER DASHBOARD
+        with gr.TabItem("👤 సభ్యుల డాష్‌బోర్డ్", id=3):
             gr.Markdown("### సభ్యుల లెడ్జర్")
             gr.Markdown("*ఏదైనా వరుసపై క్లిక్ చేయండి సభ్యుని వివరాలు చూడటానికి*")
             dashboard_ledger = gr.HTML()
@@ -580,7 +689,8 @@ with gr.Blocks(title="చిట్‌సింక్", css=CSS, theme=gr.themes.
                 outputs=[member_output, send_btn, edit_amount, edit_status, custom_fields_editor]
             )
 
-        with gr.TabItem("🔨 వేలం కాలిక్యులేటర్"):
+        # AUCTION CALCULATOR
+        with gr.TabItem("🔨 వేలం కాలిక్యులేటర్", id=4):
             gr.Markdown("### గెలిచిన బిడ్‌కు డివిడెండ్ లెక్కించండి")
             bid_input = gr.Number(label="గెలిచిన బిడ్ నమోదు చేయండి (₹)", value=15000, minimum=1000, maximum=99000)
             calc_btn = gr.Button("లెక్కించండి", variant="primary")
