@@ -4,18 +4,21 @@ from app_te import te_app
 
 if __name__ == "__main__":
     import threading
+    import time
+    
     threading.Thread(target=lambda: en_app.launch(
         server_port=7861,
         prevent_thread_lock=True,
-        quiet=True,
-        
+        share=True,
     )).start()
+    
     threading.Thread(target=lambda: te_app.launch(
         server_port=7862,
         prevent_thread_lock=True,
-        quiet=True,
-        
+        share=True,
     )).start()
+    
+    time.sleep(10)
 
 
     with gr.Blocks(
@@ -123,13 +126,13 @@ if __name__ == "__main__":
                 with gr.Row():
                     with gr.Column():
                         gr.HTML("""
-                        <a href="http://127.0.0.1:7861" class="lang-card">
+                        <a href="https://8f16e596247eebde54.gradio.live" class="lang-card">
                             <div class="lang-label">ENGLISH</div>
                         </a>
                         """)
                     with gr.Column():
                         gr.HTML("""
-                        <a href="http://127.0.0.1:7862" class="lang-card">
+                        <a href="https://68c1369f592c7bc9b3.gradio.live" class="lang-card">
                             <div class="lang-label">తెలుగు</div>
                         </a>
                         """)
@@ -139,4 +142,4 @@ if __name__ == "__main__":
                     POWERED BY OLLAMA + EASYOCR + GRADIO
                 </div>
                 """)
-landing.launch(server_port=7860)
+landing.launch(server_port=7860, share=True)

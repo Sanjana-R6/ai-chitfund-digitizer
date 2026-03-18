@@ -708,4 +708,4 @@ with gr.Blocks(title="చిట్‌ఫండ్ — తెలుగు", css=C
     )
 
 if __name__ == "__main__":
-    te_app.launch(server_port=7862)
+    landing.launch(server_port=7862, share=True)
