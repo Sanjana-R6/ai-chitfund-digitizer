@@ -4,7 +4,7 @@
   "members": 2,
   "monthly_sub": 5000,
   "commission_pct": 5.0,
-  "winning_bid": 0,
+  "winning_bid": 15000,
   "current_month": 1,
   "start_date": "2026-03-15",
   "custom_fields": [

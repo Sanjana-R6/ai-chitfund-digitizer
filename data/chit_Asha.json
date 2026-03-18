@@ -29,9 +29,9 @@
     },
     {
       "name": "Priya",
-      "paid": false,
-      "due": 5000,
-      "months_paid": 0,
+      "paid": true,
+      "due": 0,
+      "months_paid": 1,
       "missed": 0,
       "Phone": "",
       "Address": "",
