@@ -1,0 +1,43 @@
+{
+  "chit_name": "Asha",
+  "chit_value": 100000,
+  "members": 2,
+  "monthly_sub": 5000,
+  "commission_pct": 5.0,
+  "winning_bid": 30000,
+  "current_month": 1,
+  "start_date": "2026-03-18",
+  "custom_fields": [
+    "Phone",
+    "Address",
+    "Guarantor",
+    "Loan Taken",
+    "Notes"
+  ],
+  "members_list": [
+    {
+      "name": "Ajay",
+      "paid": false,
+      "due": 5000,
+      "months_paid": 0,
+      "missed": 0,
+      "Phone": "",
+      "Address": "",
+      "Guarantor": "",
+      "Loan Taken": "",
+      "Notes": ""
+    },
+    {
+      "name": "Bobby",
+      "paid": false,
+      "due": 5000,
+      "months_paid": 0,
+      "missed": 0,
+      "Phone": "",
+      "Address": "",
+      "Guarantor": "",
+      "Loan Taken": "",
+      "Notes": ""
+    }
+  ]
+}
